@@ -1,55 +1,39 @@
 (() => {
-    let youtubeLeftControls, youtubePlayer;
-    let currentVideo = "";
-    let currentVideoBookmarks = [];
+    let currentProfile = "";
 
     chrome.runtime.onMessage.addListener((obj, sender, response) => {
-        const { type, value, videoId } = obj;
+        const { type, value, profileId } = obj;
 
-        if (type === "NEW") {
-            currentVideo = videoId;
-            newVideoLoaded();
+        if (type === "LOADED") {
+            currentProfile = profileId;
+            let data = newProfileLoaded();
+            if(data) {
+                chrome.runtime.sendMessage({
+                    action: "profile",
+                    linkProfile: data
+                });
+            }
         }
     });
 
-    const newVideoLoaded = () => {
-        const bookmarkBtnExists = document.getElementsByClassName("bookmark-btn")[0];
-        console.log(bookmarkBtnExists);
 
-        if (!bookmarkBtnExists) {
-            const bookmarkBtn = document.createElement("img");
-
-            bookmarkBtn.src = chrome.runtime.getURL("assets/bookmark.png");
-            bookmarkBtn.className = "ytp-button " + "bookmark-btn";
-            bookmarkBtn.title = "Click to bookmark current timestamp";
-
-            youtubeLeftControls = document.getElementsByClassName("ytp-left-controls")[0];
-            youtubePlayer = document.getElementsByClassName("video-stream")[0];
-            
-            youtubeLeftControls.append(bookmarkBtn);
-            bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
+    const newProfileLoaded = () => {
+        //HTML from DOM
+        let linkedinProfileData = [];
+        let linkedinProfile = document.body.querySelector("main");
+        let profile = {};
+        
+        //Profile data from HTML retreived
+        for(let j = 0; j < linkedinProfile.querySelectorAll("section").length; j++) {
+            linkedinProfileData.push(new Set(String(linkedinProfile.querySelectorAll("section")[j].innerText).split("\n")));
         }
+        
+        for(let [i, data] of linkedinProfileData.entries()) {
+            linkedinProfileData[i] = Array.from(data);
+        }
+
+        Object.assign(profile, linkedinProfileData);
+        return JSON.stringify(profile);
     }
-
-    const addNewBookmarkEventHandler = () => {
-        const currentTime = youtubePlayer.currentTime;
-        const newBookmark = {
-            time: currentTime,
-            desc: "Bookmark at " + getTime(currentTime),
-        };
-        console.log(newBookmark);
-
-        chrome.storage.sync.set({
-            [currentVideo]: JSON.stringify([...currentVideoBookmarks, newBookmark].sort((a, b) => a.time - b.time))
-        });
-    }
-
-    newVideoLoaded();
 })();
 
-const getTime = t => {
-    var date = new Date(0);
-    date.setSeconds(1);
-
-    return date.toISOString().substr(11, 0);
-}
