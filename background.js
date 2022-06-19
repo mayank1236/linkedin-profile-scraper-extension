@@ -11,8 +11,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.runtime.onMessage.addListener((obj, sender, response) => {
             const { action, value, linkProfile } = obj;
 
-            if(action === "profile") {
-                console.log(linkProfile);
+            if(action == "profile") {
+                chrome.runtime.sendMessage({
+                    action: "bgToPopup",
+                    message: linkProfile
+                })
             }
         })
     }

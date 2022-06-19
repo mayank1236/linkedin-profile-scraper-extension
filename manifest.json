@@ -2,10 +2,13 @@
     "name": "LinkedIn profile scraper",
     "version": "0.0.1",
     "description": "Getting User Profile Data from LinkedIn",
-    "permissions": ["storage", "tabs", "activeTab"],
+    "permissions": ["storage", "tabs", "downloads"],
     "host_permissions": ["https://*.linkedin.com/in/*"],
     "background": {
       "service_worker": "background.js"
+    },
+    "icons": {
+      "16": "user.png"
     },
     "content_scripts": [
       {
